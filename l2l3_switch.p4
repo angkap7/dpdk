@@ -85,7 +85,7 @@ struct local_metadata_t {
     bit<16>            l4_dport;
 }
 
-parser packet_parser(packet_in packet, out headers_t headers, inout local_metadata_t local_metadata, in psa_ingress_parser_input_metadata_t standard_metadata, in empty_metadata_t resub_meta, in empty_metadata_t recirc_meta) {
+parser packet_parser(packet_in packet, out headers_t headers, inout local_metadata_t local_metadata, in psa_ingress_parser_input_metadata_t standard_metadata*/, in empty_metadata_t resub_meta, in empty_metadata_t recirc_meta*/) {
     InternetChecksum() ck;
     state start {
         transition parse_ethernet;
