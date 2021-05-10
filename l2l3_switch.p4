@@ -137,13 +137,13 @@ parser packet_parser(packet_in packet, out headers_t headers, inout local_metada
     }
 }
 
-control packet_deparser(packet_out packet /*out empty_metadata_t clone_i2e_meta, out empty_metadata_t resubmit_meta*/, out empty_metadata_t normal_meta, inout headers_t headers, in local_metadata_t local_metadata, in psa_ingress_output_metadata_t istd) {
+control packet_deparser(packet_out packet, /*out empty_metadata_t clone_i2e_meta, out empty_metadata_t resubmit_meta,*/ out empty_metadata_t normal_meta, inout headers_t headers, in local_metadata_t local_metadata, in psa_ingress_output_metadata_t istd) {
    // Digest<mac_learn_digest_t>() mac_learn_digest;
     InternetChecksum() ck;
     apply {
        /* if (local_metadata.send_mac_learn_msg) {
-            mac_learn_digest.pack(local_metadata.mac_learn_msg);*/
-        }
+            mac_learn_digest.pack(local_metadata.mac_learn_msg);
+        }*/
 
         ck.subtract(headers.ipv4.hdr_checksum);
         ck.add({/* 16-bit word */ headers.ipv4.ttl, headers.ipv4.protocol });
@@ -320,7 +320,7 @@ control egress(inout headers_t headers, inout local_metadata_t local_metadata, i
 
         actions = {
             strip_vlan;
-            mod_vlan;
+            //mod_vlan;
         }
     }
 
@@ -359,7 +359,7 @@ parser egress_parser(packet_in buffer, out headers_t headers, inout local_metada
     }
 }
 
-control egress_deparser(packet_out packet, */out empty_metadata_t clone_e2e_meta, out empty_metadata_t recirculate_meta,*/ inout headers_t headers, in local_metadata_t local_metadata, in psa_egress_output_metadata_t istd, in psa_egress_deparser_input_metadata_t edstd) {
+control egress_deparser(packet_out packet, /*out empty_metadata_t clone_e2e_meta, out empty_metadata_t recirculate_meta,*/ inout headers_t headers, in local_metadata_t local_metadata, in psa_egress_output_metadata_t istd, in psa_egress_deparser_input_metadata_t edstd) {
     apply {
         packet.emit(headers.ethernet);
         packet.emit(headers.vlan_tag);
