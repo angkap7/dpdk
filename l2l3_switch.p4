@@ -80,7 +80,7 @@ struct headers_t {
 
 struct local_metadata_t {
     bool               send_mac_learn_msg;
-    mac_learn_digest_t mac_learn_msg;
+   // mac_learn_digest_t mac_learn_msg;
     bit<16>            l4_sport;
     bit<16>            l4_dport;
 }
@@ -137,12 +137,12 @@ parser packet_parser(packet_in packet, out headers_t headers, inout local_metada
     }
 }
 
-control packet_deparser(packet_out packet, out empty_metadata_t clone_i2e_meta, out empty_metadata_t resubmit_meta, out empty_metadata_t normal_meta, inout headers_t headers, in local_metadata_t local_metadata, in psa_ingress_output_metadata_t istd) {
-    Digest<mac_learn_digest_t>() mac_learn_digest;
+control packet_deparser(packet_out packet /*out empty_metadata_t clone_i2e_meta, out empty_metadata_t resubmit_meta*/, out empty_metadata_t normal_meta, inout headers_t headers, in local_metadata_t local_metadata, in psa_ingress_output_metadata_t istd) {
+   // Digest<mac_learn_digest_t>() mac_learn_digest;
     InternetChecksum() ck;
     apply {
-        if (local_metadata.send_mac_learn_msg) {
-            mac_learn_digest.pack(local_metadata.mac_learn_msg);
+       /* if (local_metadata.send_mac_learn_msg) {
+            mac_learn_digest.pack(local_metadata.mac_learn_msg);*/
         }
 
         ck.subtract(headers.ipv4.hdr_checksum);
@@ -180,12 +180,12 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
         }
     }
 
-    action mac_learn() {
+    /*action mac_learn() {
         local_metadata.send_mac_learn_msg = true;
         local_metadata.mac_learn_msg.mac_addr = headers.ethernet.src_addr;
         local_metadata.mac_learn_msg.port = standard_metadata.ingress_port;
         local_metadata.mac_learn_msg.vlan_id = headers.vlan_tag.vlan_id;
-    }
+    } */
 
     table tbl_mac_learning {
         key = {
@@ -193,11 +193,11 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
         }
 
         actions = {
-            mac_learn;
+         //   mac_learn;
             NoAction;
         }
 
-        const default_action = mac_learn();
+       // const default_action = mac_learn();
     }
 
     table tbl_routable {
@@ -280,7 +280,7 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
 
     apply {
         tbl_ingress_vlan.apply();
-        tbl_mac_learning.apply();
+       /* tbl_mac_learning.apply();
         if (tbl_routable.apply().hit) {
             switch (tbl_routing.apply().action_run) {
                 set_nexthop: {
@@ -291,7 +291,7 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
                     tbl_out_arp.apply();
                 }
             }
-        }
+        }*/
         tbl_switching.apply();
         tbl_acl.apply();
         if (!ostd.drop) {
@@ -309,9 +309,9 @@ control egress(inout headers_t headers, inout local_metadata_t local_metadata, i
         headers.vlan_tag.setInvalid();
     }
 
-    action mod_vlan(vlan_id_t vlan_id) {
+ /*   action mod_vlan(vlan_id_t vlan_id) {
         headers.vlan_tag.vlan_id = vlan_id;
-    }
+    }*/
 
     table tbl_vlan_egress {
         key = {
@@ -359,7 +359,7 @@ parser egress_parser(packet_in buffer, out headers_t headers, inout local_metada
     }
 }
 
-control egress_deparser(packet_out packet, out empty_metadata_t clone_e2e_meta, out empty_metadata_t recirculate_meta, inout headers_t headers, in local_metadata_t local_metadata, in psa_egress_output_metadata_t istd, in psa_egress_deparser_input_metadata_t edstd) {
+control egress_deparser(packet_out packet, */out empty_metadata_t clone_e2e_meta, out empty_metadata_t recirculate_meta,*/ inout headers_t headers, in local_metadata_t local_metadata, in psa_egress_output_metadata_t istd, in psa_egress_deparser_input_metadata_t edstd) {
     apply {
         packet.emit(headers.ethernet);
         packet.emit(headers.vlan_tag);
@@ -371,4 +371,4 @@ IngressPipeline(packet_parser(), ingress(), packet_deparser()) ip;
 
 EgressPipeline(egress_parser(), egress(), egress_deparser()) ep;
 
-PSA_Switch(ip, PacketReplicationEngine(), ep, BufferingQueueingEngine()) main;
+PSA_Switch(ip, /*PacketReplicationEngine(), */ep, BufferingQueueingEngine()) main;
