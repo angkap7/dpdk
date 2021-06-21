@@ -281,7 +281,7 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
     apply {
         tbl_ingress_vlan.apply();
        // tbl_mac_learning.apply();
-        if (tbl_routable.apply().hit) {
+       // if (tbl_routable.apply().hit) {
             switch (tbl_routing.apply().action_run) {
                 set_nexthop: {
                     if (headers.ipv4.ttl == 0) {
@@ -290,7 +290,7 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
                     }
                     tbl_out_arp.apply();
                 }
-            }
+         //   }
         }
         tbl_switching.apply();
         tbl_acl.apply();
