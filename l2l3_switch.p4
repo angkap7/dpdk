@@ -281,7 +281,7 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
     apply {
         tbl_ingress_vlan.apply();
        // tbl_mac_learning.apply();
-       // if (tbl_routable.apply().hit) {
+       /* if (tbl_routable.apply().hit) {
             switch (tbl_routing.apply().action_run) {
                 set_nexthop: {
                     if (headers.ipv4.ttl == 0) {
@@ -290,16 +290,34 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
                     }
                     tbl_out_arp.apply();
                 }
-         //   }
+            }*/
         }
         tbl_switching.apply();
         tbl_acl.apply();
         if (!ostd.drop) {
             headers.bridged_meta.setValid();
             headers.bridged_meta.ingress_port = (bit<32>) standard_metadata.ingress_port;
+        
+        enum action_list(tbl_routable){
+        }
+        struct apply_result(tbl_routable){
+            bool hit;
+            bool miss;
+            action_list(tbl_routable) action_run;
+        }
+        if(tbl_routable.apply().hit){
+            switch (tbl_routing.apply().acion_run){
+                set_nexthop:
+                    if (headers.ipv4.ttl == 0) {
+                        drop();
+                        exit;
+                    }
+                    tbl_out_arp.apply();
+            }
+        }
+        else{
         }
     }
-
 }
 
 control egress(inout headers_t headers, inout local_metadata_t local_metadata, in psa_egress_input_metadata_t istd, inout psa_egress_output_metadata_t ostd) {
